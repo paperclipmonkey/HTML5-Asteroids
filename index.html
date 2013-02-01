@@ -1,0 +1,51 @@
+<html>
+  <head>
+      <title>Asteroids.js</title>
+      <meta name="author" content="Michael Waterworth">
+      <link rel="stylesheet" href="css/style.css"/>
+      <link rel="stylesheet" href="css/starField.css"/>
+      <script src="js/jquery.1.7.1.js" type="text/javascript"></script>
+  	</head>
+  <body>
+    
+    <canvas id="starfield" style="background-color: rgb(0, 0, 0); position: absolute;" width="729" height="758"></canvas>
+    <div id="playspace"></div>
+    <div id="splashscreen">
+      <img src="img/splash.png" alt="Asteroids"/>
+    </div>
+
+    <div id="endgame">
+      <div id="scores">
+        <h2>High Scores</h2>
+        <ol id="scoreslist">
+        </ol>
+      </div>
+      <div id="scoreformcontainer">
+        <h2>Submit Score</h2>
+        <span id="endgold"></span>
+        <form id="scoreform">
+          <input type="text" id="username" name="username" />
+          <button type="submit" val="Submit">Submit</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="debuginfo" style="">
+      <div id="debug">
+        <span id="viewport"></span>
+        <span id="asteroidsleft"></span>
+        <span id="bulletsleft"></span>
+        <span id="userposition"></span>
+      </div>
+      <span id="goldcount">Gold: 0</span>
+    </div>
+
+    <script src="js/require.js"></script>
+    <script src="js/inheritance.js"></script>
+    <script src="js/webaudio.js"></script>
+    <script type="text/javascript">
+      require(['./js/game']);
+    </script>
+
+  </body>
+</html>

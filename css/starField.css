@@ -1,0 +1,51 @@
+.starBlur {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	z-index: 0;
+	width: 60px;
+	height: 15px;
+	margin-top: -40px;
+	border-radius: 10px;
+	background-color: #333;
+	-webkit-transform-origin: 0 10px;
+	-webkit-transition: all 10s ease-in, opacity 1s linear;
+	-moz-transform-origin: 0 10px;
+	-moz-transition: all 10s ease-in, opacity 1s linear;
+	-ms-transform-origin: 0 10px;
+	-ms-transition: all 10s ease-in, opacity 1s linear;
+	transform-origin: 0 10px;
+	transition: all 10s ease-in, opacity 1s linear;
+}
+
+.starBlur2 {
+	width: 12px;
+	height: 12px;
+	margin-top: -37px;
+	border-radius: 7px;
+	background-color: #222;
+	-webkit-transform-origin: 0 7px;
+	-webkit-transition: all 10s ease-in;
+	-moz-transform-origin: 0 7px;
+	-moz-transition: all 10s ease-in;
+	-ms-transform-origin: 0 7px;
+	-ms-transition: all 10s ease-in;
+	transform-origin: 0 7px;
+	transition: all 10s ease-in;
+}
+
+.starBlur3 {
+	width: 8px;
+	height: 8px;
+	margin-top: -34px;
+	border-radius: 4px;
+	background-color: #111;
+	-webkit-transform-origin: 0 4px;
+	-webkit-transition: all 10s ease-in;
+	-moz-transform-origin: 0 7px;
+	-moz-transition: all 10s ease-in;
+	-ms-transform-origin: 0 7px;
+	-ms-transition: all 10s ease-in;
+	transform-origin: 0 7px;
+	transition: all 20s ease-in;
+}
