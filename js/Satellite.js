@@ -8,7 +8,7 @@ define(["js/Automiton"], function(Automiton) {
 			this.canFire = true;
 			this.fires = true;
 
-			this.object = new this.object(this.position, this.width, this.height);
+			this.object = new this.Object(this.position, this.width, this.height);
 			this.drawBase();
 			this.healthBar();
 		},

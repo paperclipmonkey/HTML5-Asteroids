@@ -1,4 +1,4 @@
-define(["js/Automiton", "js/Satellite"], function(Automiton, Satellite) {
+define(["js/Automiton", "js/Satellite", "js/LaserGrid"], function(Automiton, Satellite, LaserGrid) {
 	var Player = Automiton.extend({
 		init: function(obj){
 			this._super(obj);
@@ -15,7 +15,7 @@ define(["js/Automiton", "js/Satellite"], function(Automiton, Satellite) {
 			this._to = null;
 			this.gold = 0;
 
-			this.object = new this.object(this.position, this.width, this.height);
+			this.object = new this.Object(this.position, this.width, this.height);
 			this.drawBase();
 			this.healthBar();
 		},
@@ -73,6 +73,22 @@ define(["js/Automiton", "js/Satellite"], function(Automiton, Satellite) {
 					this.position[0] + 8 - 30 * directions[0],
 					this.position[1] + 8 + 30 * directions[1]//Width of bullet 6px
 				]
+				})
+			);
+		},
+
+		deployLaserGrid: function(){
+			var radians = this.direction * (Math.PI/180);
+			var directions = [];
+			directions[0] = Math.sin(radians);
+			directions[1] = Math.cos(radians);
+			game.lasergrid.push(
+				new LaserGrid({
+				position: [
+					this.position[0] + 8 - 30 * directions[0],
+					this.position[1] + 8 + 30 * directions[1]//Width of bullet 6px
+				],
+				laserTo: game.lasergrid[game.lasergrid.length-1]
 				})
 			);
 		},

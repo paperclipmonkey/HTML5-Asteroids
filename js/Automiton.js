@@ -81,15 +81,20 @@ define(["js/Sprite","js/Bullet"], function(Sprite, Bullet) {
 			);
 		},
 
-		object: function (position, width, height) {
-			this.element = document.createElement('canvas');//Create new Canvas
-			this.element.style.position = "fixed";
-			this.element.style.top = position[1];
-			this.element.style.left = position[0];
-			document.getElementById('playspace').appendChild(this.element);
-			this.canvas = this.element.getContext('2d');
-			this.element.setAttribute('width', width);
-			this.element.setAttribute('height', height);
+		Object: function (position, width, height) {
+			element = document.createElement('canvas');//Create new Canvas
+			element.style.position = "fixed";
+			element.style.top = position[1];
+			element.style.left = position[0];
+			document.getElementById('playspace').appendChild(element);
+			element.canvas = element.getContext('2d');
+			element.setAttribute('width', width);
+			element.setAttribute('height', height);
+
+			return {
+				element: element,
+				canvas: element.canvas
+			};
 		},
 
 		goTurn: function (direction, game) {

@@ -3,7 +3,7 @@
  * @version 2012-12-5
 */
 
-define(["./Asteroid", "./Powerup", "./Bullet", "./Player", "./Satellite", "./starField"], function(Asteroid, Powerup, Bullet, Player, Satellite, starField){
+define(["./Asteroid", "./Powerup", "./Bullet", "./Player", "./Satellite", "./LaserGrid", "./starField"], function(Asteroid, Powerup, Bullet, Player, Satellite, LaserGrid, starField){
 
 "use strict";
 
@@ -174,6 +174,7 @@ window.game = (function(){
 		asteroids = [],//Asteroids array
 		powerups = [],//Powerups array
 		satellites = [],//Satellites array
+		lasergrid = [],//lasergrid array
 		settings = {
 			audio: false,
 			asteroids: 300,
@@ -269,6 +270,11 @@ window.game = (function(){
 		for (i=0; i < satellites.length; i++) {
 			satellites[i].turnAuto(game);//Move satellites
 			satellites[i].move(game);//Move satellites
+		}
+
+		//Animate LaserGrid
+		for (i=0; i < lasergrid.length; i++) {
+			lasergrid[i].move(game);//Move lasergrid
 		}
 
 		//Animate bullets
@@ -389,6 +395,9 @@ window.game = (function(){
 				break;
 			case 83:
 				game.player.deploySatellite();
+				break;
+			case 76:
+				game.player.deployLaserGrid();
 				break;
 		}
 	});
@@ -529,6 +538,7 @@ window.game = (function(){
 		height: height,
 		bullets: bullets,
 		satellites: satellites,
+		lasergrid: lasergrid,
 		asteroids: asteroids,
 		powerups: powerups,
 		player: player,
