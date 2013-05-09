@@ -12,7 +12,7 @@ define(["js/Automiton", "js/Satellite"], function(Automiton, Satellite) {
 
 			this.shields = false;
 			this.shieldsviewon = false;
-
+			this._to = null;
 			this.gold = 0;
 
 			this.object = new this.object(this.position, this.width, this.height);
@@ -182,27 +182,39 @@ define(["js/Automiton", "js/Satellite"], function(Automiton, Satellite) {
 			img1.src = 'img/ship-base-shield.png';
 		},
 
-		goForwards: function () {
-			if (this.velocity < 16) {
-				this.velocity += 2;
+		goForwards: function (small) {
+			if (this.velocity < 3600) {
+				if(small === 'small'){
+					this.velocity += 100;
+				} else {
+					this.velocity += 200;
+				}
 			}
 		},
 
 		goBackwards: function () {
-			if (this.velocity > -10) {//Lower limit
-				this.velocity -= 2;
+			if (this.velocity > -1600) {//Lower limit
+				this.velocity -= 200;
 			}
 		},
 
-		move: function () {//Moving player forward
+		to: function (obj){
+			this._to = obj;
+		},
+
+		move: function (game) {//Moving player forward
 			if(this.thrusters){
 				this.goForwards();
+			}
+
+			if(this._to){
+				this.toLocation(this._to);
 			}
 
 			this.draw();
 
 			if(this.turns){
-				this.goTurn(this.turns);
+				this.goTurn(this.turns, game);
 			}
 
 			if(this.fires){
@@ -217,8 +229,10 @@ define(["js/Automiton", "js/Satellite"], function(Automiton, Satellite) {
 			directions[0] = Math.sin(this.direction / 57.3);
 			directions[1] = Math.cos(this.direction / 57.3);
 
-			this.position[0]  += parseInt((this.velocity * (directions[0]))*10, 10)/10;
-			this.position[1] -= parseInt((this.velocity * (directions[1]))*10, 10)/10;
+			this.position[0]  += parseInt(((this.velocity * (directions[0])))*game.delta, 10)/10;
+			this.position[1] -= parseInt(((this.velocity * (directions[1])))*game.delta, 10)/10;
+			this.position[0] = parseInt(this.position[0], 10);
+			this.position[1] = parseInt(this.position[1], 10);
 
 			// - - - - - - - - - - - - - Move Viewport - - - - - - - - - - - - -
 			var mvprt = {
@@ -249,12 +263,14 @@ define(["js/Automiton", "js/Satellite"], function(Automiton, Satellite) {
 		},
 
 		inertia: function () {
-			if (this.velocity > 0 && this.velocity < 1) {
+			if (this.velocity > -100 && this.velocity < 100) {
 				this.velocity = 0;
-			} else if (this.velocity > 0) {
-				this.velocity -= 0.6;
+			} else if (this.velocity < 1001) {
+				this.velocity -= 50;
+			} else if (this.velocity > 1000) {
+				this.velocity -= 100;
 			} else if (this.velocity < 0) {//Decrement velocity - Slow down
-				this.velocity += 0.6;
+				this.velocity += 20;
 			}//if going backwards also slow down
 		},
 

@@ -2,7 +2,7 @@ define(["js/Sprite"], function(Sprite) {
 	var Bullet = Sprite.extend({
 		init: function(obj) {
 			this._super(obj);
-			this.velocity = 26;
+			this.velocity = 10;
 			this.timer = 0;
 			this.object = new this.object(this.position, this.orientation);
 
@@ -15,13 +15,15 @@ define(["js/Sprite"], function(Sprite) {
 				{x: game.player.position[0], y: game.player.position[1]},
 				{x: this.position[0], y:this.position[1]}
 			)< 1500){
-				try{
-					var sound = game.webaudio.createSound();
-					sound.load('audio/Blip001.wav', function(sound){
-						sound.volume(0.03).play();
-					});
-				} catch(e){
-					console.error(e);
+				if(game.settings.audio){
+					try{
+						var sound = game.webaudio.createSound();
+						sound.load('audio/Blip001.wav', function(sound){
+							sound.volume(0.03).play();
+						});
+					} catch(e){
+						console.error(e);
+					}
 				}
 			}
 		},
@@ -56,7 +58,7 @@ define(["js/Sprite"], function(Sprite) {
 
 		move: function () {//Moving Bullet forward
 			this.timer+=1;
-			if (this.timer >= 30) {//Remove when bullet travelled certain distance
+			if (this.timer >= 50) {//Remove when bullet travelled certain distance
 				this.remove();
 				return true;
 			}

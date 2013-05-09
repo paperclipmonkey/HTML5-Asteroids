@@ -110,11 +110,21 @@ body{
 	font-family: 'visitor_tt1_brkregular';
 }
 
-#debug{
-	display: none;
+#minimap{
+	position: absolute;
+	bottom: 10px;
+	right: 10px;
+	border: 1px solid #FFF;
+	opacity: 0.7;
 }
 
-#goldcount{
+#debug{
+	/*display: none;*/
+	width: 165px;
+}
+
+#fpsnum {
+	float: left;
 	font-size: 25px;
 }
 

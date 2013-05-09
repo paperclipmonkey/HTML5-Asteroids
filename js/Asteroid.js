@@ -14,28 +14,12 @@ define(["js/Sprite", "js/Powerup"], function(Sprite, Powerup) {
 			this.object = new this.object(this);
 		},
 
-		rotate: function () {
-			this.orientation = this.orientation  +  this.rotationspeed;
+		rotate: function (game) {
+			this.orientation = this.orientation  +  (this.rotationspeed * game.delta * 15);
 			if(this.orientation >= 360){
 				this.orientation -= 360;
 			}
 			this.object.element.style.webkitTransform = "rotate(" + (this.orientation + this.rotationspeed) + "deg)";
-		},
-
-		checkOut: function(game, distance){
-			var rtn = false;
-			if ((this.position[0] - game.viewport.x) < - distance) {//Horizontal
-				rtn = true;
-			} else if ((this.position[0] - game.viewport.x) > game.viewport.width + distance) {
-				rtn = true;
-			}
-
-			if ((this.position[1] - game.viewport.y) < - distance) {//Vertical
-				rtn = true;
-			} else if ((this.position[1] - game.viewport.y) > game.viewport.height + distance) {
-				rtn = true;
-			}
-			return rtn;
 		},
 
 		del: function () {
@@ -106,14 +90,16 @@ define(["js/Sprite", "js/Powerup"], function(Sprite, Powerup) {
 				{x: game.player.position[0], y: game.player.position[1]},
 				{x: this.position[0], y:this.position[1]}
 			)< 1500){
-				try{
-					//if close enough to player.
-					var sound = game.webaudio.createSound();
-					sound.load('audio/Noise002.wav', function(sound){
-						sound.volume(0.10).play();
-					});
-				} catch(e){
-					console.error(e);
+				if(game.settings.audio){
+					try{
+						//if close enough to player.
+						var sound = game.webaudio.createSound();
+						sound.load('audio/Noise002.wav', function(sound){
+							sound.volume(0.10).play();
+						});
+					} catch(e){
+						console.error(e);
+					}
 				}
 			}
 

@@ -7,11 +7,33 @@ define(["./Asteroid", "./Powerup", "./Bullet", "./Player", "./Satellite", "./sta
 
 "use strict";
 
+// http://paulirish.com/2011/requestanimationframe-for-smart-animating/
+// http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
+// requestAnimationFrame polyfill by Erik Möller
+// fixes from Paul Irish and Tino Zijdel
 (function() {
-	var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
-		window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
-	window.requestAnimationFrame = requestAnimationFrame;
-})();
+    var lastTime = 0;
+    var vendors = ['ms', 'moz', 'webkit', 'o'];
+    for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+        window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
+        window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame'] || window[vendors[x]+'CancelRequestAnimationFrame'];
+    }
+
+    if (!window.requestAnimationFrame)
+        window.requestAnimationFrame = function(callback, element) {
+            var currTime = new Date().getTime();
+            var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+            var id = window.setTimeout(function() { callback(currTime + timeToCall); },
+              timeToCall);
+            lastTime = currTime + timeToCall;
+            return id;
+        };
+
+    if (!window.cancelAnimationFrame)
+        window.cancelAnimationFrame = function(id) {
+            clearTimeout(id);
+        };
+}());
 
 /**
  * Measure distance between two points
@@ -97,12 +119,34 @@ function checkCollision(a, b) {
 /**
  * Create a set number of asteroids in the level at random locations
  *
- * @param {number} value Number of Asteroid objects to create
+ * @param {number} num Number of Asteroid objects to create
  */
-function createLevelAsteroids(value) {
+function createLevelAsteroids(num) {
+	function position(){
+		var arr = [
+					game.width * Math.random(),
+					game.height * Math.random()
+		];
+		/*
+		game.viewport = {
+			x: 5000,
+			y: 5000,
+			height: window.innerHeight,
+			width: window.innerWidth
+		};
+		*/
+		if(arr[0] > game.viewport.x && arr[0] < game.viewport.x + game.viewport.width){
+			if(arr[1] > game.viewport.y && arr[1] < game.viewport.y + game.viewport.height){
+				return position();
+
+			}
+		}
+		return arr;
+	}
+
 	var ii = 0;
 	var types = ['rock','fuel','metal'];
-	while (ii < value) {
+	while (ii < num) {
 		var type = types[(Math.random() > 0.9 ? 1: 0) + (Math.random() > 0.5 ? 1: 0)];
 		game.asteroids.push(
 			new Asteroid({
@@ -110,10 +154,7 @@ function createLevelAsteroids(value) {
 				weight: 5+20*Math.random(),
 				direction: [],
 				rotationspeed: (Math.random() + 0.3 * 40),
-				position: [
-					game.width * Math.random(),
-					game.height * Math.random()
-				],
+				position: position(),
 				type: type
 			})//Speed / Weight / RotationSpeed / Position / type / real
 		);
@@ -133,6 +174,12 @@ window.game = (function(){
 		asteroids = [],//Asteroids array
 		powerups = [],//Powerups array
 		satellites = [],//Satellites array
+		settings = {
+			audio: false,
+			asteroids: 300,
+			starField: false
+		},
+		zoom =  1,
 		viewport = {//Holds information about the current world viewport
 			x: 0,
 			y: 0,
@@ -142,25 +189,73 @@ window.game = (function(){
 		player,
 		webaudio = new WebAudio();//Used to play audio when firing etc
 
-	window.onresize = function() {
-		game.viewport.height = window.innerHeight;
-		game.viewport.width = window.innerWidth;
-		starField.resize();
-	};
+	function resize() {
+		game.viewport.height = window.innerHeight / game.zoom;
+		game.viewport.width = window.innerWidth / game.zoom;
+		if(game.settings.starField){
+			starField.resize();
+		}
+	}
+
+	function miniMap(){
+		var mm = document.getElementById('minimap');
+		var cx = mm.getContext('2d');
+		mm.height = 100;
+		mm.width = 100;
+		//Fill rect
+		cx.fillStyle = '#0f0';
+		cx.fillRect(0,0,100,100);
+
+		//Draw user object
+		cx.beginPath();
+		cx.arc((game.player.position[0] / game.width)*100, (game.player.position[1] / game.height)*100, 2/*Radius*/, 0, 2 * Math.PI, false);
+		cx.fillStyle = 'green';
+		cx.fill();
+
+
+		for (i=0; i < satellites.length; i++) {
+			cx.beginPath();
+			cx.arc((satellites[i].position[0] / game.width)*100, (satellites[i].position[1] / game.height)*100, 2/*Radius*/, 0, 2 * Math.PI, false);
+			cx.fillStyle = 'black';
+			cx.fill();
+		}
+
+		// context.lineWidth = 5;
+		// context.strokeStyle = '#003300';
+		// context.stroke();
+	}
+
+	window.onresize = resize;
 
 	/**
 		Main game loop. All actions stem from this loop.
 	*/
 	function loop() {
+		if(game.oldTime){
+			game.oldTime = game.newTime;
+		} else {
+			game.oldTime = new Date().getTime();
+		}
+		game.newTime = new Date().getTime();
+		game.delta = (game.newTime - game.oldTime)/1000;//Measured in seconds
+		fps.registerFPS((1000 / game.delta)/1000);
+		gameLoop = requestAnimationFrame(loop);
 		game.player.move(game);
 
 		var i, ii;
 
 		//Animate Asteroids
 		for (i=0; i < asteroids.length; i++) {
-			asteroids[i].rotate();
+			asteroids[i].rotate(game);
 			asteroids[i].move(game);
 		}
+
+		for (i=0; i < asteroids.length; i++) {
+			if(asteroids[i].checkOutWorld(game, 200)){
+				asteroids[i].del();
+			}
+		}
+
 
 		//Animate Powerups
 		for (i=0; i < powerups.length; i++) {
@@ -180,9 +275,9 @@ window.game = (function(){
 		for (i=0; i < bullets.length; i++) {
 			if (bullets[i].move(game)) {//Remove bullet if it's hit the game bounds
 				bullets.splice(i, 1);
-			} 
+			}
 		}
-		
+
 		//Check for collisions between bullets and asteroids
 		ii=0;
 		for (i=0; i < bullets.length; i++) {
@@ -210,7 +305,7 @@ window.game = (function(){
 			}
 			i++;
 		}
-		
+
 		//Check for collisions between user and asteroids
 		i=0;
 		while (i < game.asteroids.length) {
@@ -219,8 +314,27 @@ window.game = (function(){
 			}
 		}//Check for hits
 
+		game.miniMap();
+
+		if (game.asteroids.length < game.settings.asteroids) {
+			createLevelAsteroids(game.settings.asteroids - game.asteroids.length);
+		}
+
 		$('#asteroidsleft').text('Asteroids: ' + game.asteroids.length);//Debugging
+		$('#userposition').text('Player: ' + game.player.position);//Debugging
 		$('#bulletsleft').text('Bullets: ' + game.bullets.length);//Debugging
+	}
+
+	function scale(scl){
+		$('#playspace').animate({zoom:scl}, {step: function(scl){
+			game.zoom = scl;
+			game.resize();
+		}});
+
+		//document.getElementById('playspace').style.zoom = scl;
+		//game.zoom = scl;
+
+		//game.resize();
 	}
 
 
@@ -282,8 +396,6 @@ window.game = (function(){
 	//Move Asteroids & bullets
 	function moveViewport(mvprt){
 
-		var hitBounds = false;
-
 		if(game.viewport.x - mvprt.x < 0){
 			game.viewport.x = 0;
 			mvprt.x = 0;
@@ -302,9 +414,9 @@ window.game = (function(){
 
 		game.viewport.x -= mvprt.x;
 		game.viewport.y -= mvprt.y;
-
-		starField.move(mvprt.x, mvprt.y);
-
+		if(game.settings.starField){
+			starField.move(mvprt.x, mvprt.y);
+		}
 		$('#viewport').text(parseInt(game.viewport.x, 10) + ', ' + parseInt(game.viewport.y, 10));//Debugging
 	}
 
@@ -312,19 +424,20 @@ window.game = (function(){
 		$('#playspace').html('');//Clear previous characters
 		window.clearInterval(gameLoop);
 
-		createLevelAsteroids(250);
-
 		game.viewport = {
 			x: 5000,
-			y: 5000
+			y: 5000,
+			height: window.innerHeight,
+			width: window.innerWidth
 		};
 
-		if(typeof starField != 'undefined'){
+		createLevelAsteroids(game.settings.asteroids);
+
+
+		if(game.settings.starField){
 			starField.start();
 		}
 
-		game.viewport.height = window.innerHeight;
-		game.viewport.width = window.innerWidth;
 		game.player = new Player({
 			position: [
 				game.viewport.width / 2 + game.viewport.x,
@@ -333,20 +446,24 @@ window.game = (function(){
 		});
 		game.player.shieldsOnOff(true, 4000);
 
-		window.setTimeout(function(){
-			starField.move(0,0);
-		},50);
+		// window.setTimeout(function(){
+		// 	starField.move(0,0);
+		// },50);
 
-		gameLoop = window.setInterval(
-			loop, 33
-		);
+		gameLoop = requestAnimationFrame(loop);
+
+		if(game.settings.starField){
+			gameLoop = window.setInterval(
+				loop, 33
+			);
+		}
 	}
 
 	function stop(){
-		window.clearInterval(gameLoop);
-		// if(typeof starField != 'undefined'){
-		// 	starField.stop();
-		// }
+		window.cancelAnimationFrame(gameLoop);
+		if(game.settings.starField){
+		 	starField.stop();
+		}
 	}
 
 	function end(){
@@ -389,6 +506,10 @@ window.game = (function(){
 		saveHighscores();
 	});
 
+	$('#minimap').click(function(e){
+		game.player.to({x:e.offsetX * 100, y: e.offsetY * 100})
+	});
+
 	//Loading animation
 	function load(){
 		//Show splash screen
@@ -417,7 +538,12 @@ window.game = (function(){
 		angleDistance: angleDistance,
 		calcAngle: calcAngle,
 		load: load,
-		webaudio: webaudio
+		scale: scale,
+		webaudio: webaudio,
+		settings: settings,
+		zoom: zoom,
+		resize: resize,
+		miniMap: miniMap
 	};
 
 })();

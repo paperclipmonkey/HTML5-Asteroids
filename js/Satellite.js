@@ -37,7 +37,7 @@ define(["js/Automiton"], function(Automiton) {
 			this.healthElementBar.style.width = this.health + '%';
 		},
 
-		turnAuto: function () {
+		turnAuto: function (game) {
 			//Work out the closest Asteroid
 			var distances = [];
 			for (var i = game.asteroids.length - 1; i >= 0; i--) {
@@ -68,11 +68,11 @@ define(["js/Automiton"], function(Automiton) {
 			//turn towards closest asteroid
 			var leftright = closest.direction - this.orientation;
 			if(leftright > 180){
-				this.goTurn('anticlockwise');
+				this.goTurn('anticlockwise', game);
 			} else if(leftright > 5){
-				this.goTurn('clockwise');
+				this.goTurn('clockwise', game);
 			} else if(leftright < -5){
-				this.goTurn('anticlockwise');
+				this.goTurn('anticlockwise', game);
 			} else {
 				if(closest.distance <= 500){//Don't fire too far
 					this.fire(true);//pointing in the right direction

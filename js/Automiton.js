@@ -5,7 +5,7 @@ define(["js/Sprite","js/Bullet"], function(Sprite, Bullet) {
 	var Automiton = Sprite.extend({
 		init: function(obj){
 			this._super(obj);
-			
+
 			this.healthElement = {};
 			this.healthElementBar = {};
 			this.health = 100;
@@ -92,17 +92,17 @@ define(["js/Sprite","js/Bullet"], function(Sprite, Bullet) {
 			this.element.setAttribute('height', height);
 		},
 
-		goTurn: function (direction) {
+		goTurn: function (direction, game) {
 			if (direction === "clockwise") {
 				if (this.orientation >= 360) {
 					this.orientation = 0;
 				}
-				this.orientation = this.orientation + 5;
+				this.orientation = this.orientation + (200 * game.delta);
 			} else if (direction === "anticlockwise") {
 				if (this.orientation <= 0) {
 					this.orientation = 360;
 				}
-				this.orientation = this.orientation - 5;
+				this.orientation = this.orientation - (200 * game.delta);
 			}
 
 			this.object.element.style.webkitTransform = "rotate(" + this.orientation + "deg)";
@@ -111,6 +111,104 @@ define(["js/Sprite","js/Bullet"], function(Sprite, Bullet) {
 		forwards: function(onoff){
 			this.dirty = true;
 			this.thrusters = onoff;
+		},
+
+		toLocation: function(to){
+			//Turn to the right direction
+			var distance =  game.lineDistance({
+					x:this.position[0],
+					y:this.position[1]
+				},
+				{
+					'x':to.x,
+					'y':to.y
+			});
+			var direction = game.calcAngle(
+				this.position[0],
+				to.x,
+				this.position[1],
+				to.y
+			);
+
+			if(!distance && this.velocity === 0){
+				this._to = null;
+				return true;
+			}
+
+			//See if there are any asteroids in the way
+			var distances = [];
+			for (var i = game.asteroids.length - 1; i >= 0; i--) {
+				distances.push({
+					distance: game.lineDistance({
+						x:this.position[0],
+						y:this.position[1]
+					},
+					{
+						x:game.asteroids[i].position[0],
+						y:game.asteroids[i].position[1]
+					}),
+					direction: game.calcAngle(
+						this.position[0],
+						game.asteroids[i].position[0],
+						this.position[1],
+						game.asteroids[i].position[1]
+					),
+					obj: game.asteroids[i]
+				});
+			}
+			distances.sort(function(a, b){
+				return (a.distance - b.distance); //causes an array to be sorted numerically and ascending
+			});
+
+			closest = distances[0];
+
+			if(closest.distance < 500){
+				var obAng = game.calcAngle(
+						0,
+						closest.obj.direction[0],
+						0,
+						closest.obj.direction[1]
+				);
+
+				console.log(obAng);
+
+				// if(obAng + 20 > closest.direction && obAng - 20 < closest.direction){
+				// 	direction = direction - 40;
+				// } else
+				if(closest.direction + 20 > direction && closest.direction - 20 < direction){
+					var lr = closest.direction - direction;
+					//change angle to avoid hit
+					if(lr < 0){
+						direction = direction + 40;//(40 * closest.distance / 250);
+					} else {
+						direction = direction - 40;//(40 * closest.distance / 250);
+					}
+				}
+				//if(closest.obj.)
+			}
+
+			var leftright = direction - this.orientation;
+			if(leftright > 180){
+				this.goTurn('anticlockwise', game);
+			} else if(leftright > 5){
+				this.goTurn('clockwise', game);
+			} else if(leftright < -5){
+				this.goTurn('anticlockwise', game);
+			} else {
+				//var cspeed = distance / this.velocity;
+				//console.log(cspeed);
+				//console.log(distance, this.velocity);
+				if(distance > 700){
+					this.goForwards();
+				} else if(distance < 500 && distance > 100 && this.velocity < 1000){
+					this.goForwards();
+				} else if(this.velocity < 200){
+					this.goForwards('small');
+				}
+			}
+			//Forwards
+
+			return false;
 		},
 
 		draw: function(){
