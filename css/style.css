@@ -118,6 +118,14 @@ body{
 	font-size: 25px;
 }
 
+#fps {
+	float: left;
+}
+
+#goldcount{
+	font-size: 30px;
+}
+
 #endgame h2{
 	margin:10px 0px;
 }
