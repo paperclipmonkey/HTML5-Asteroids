@@ -99,7 +99,7 @@ function angleDistance(distance, angle){
  * @param {object} a Object A to compare. Must match pattern {position:[],width:0,height:0}
  * @param {object} b Object B to compare. Must match pattern {position:[],width:0,height:0}
  * @fires Fires hit function on both objects if a collision has occurred.
- * @return {boolean} Wether the objects collided.
+ * @return {boolean} Whether the objects collided.
  */
 function checkCollision(a, b) {
 	if(!(
@@ -114,6 +114,132 @@ function checkCollision(a, b) {
 		return true;
     }
     return false;
+}
+
+/* Code to go inside the App - Check within AONB */
+function pnpoly( nvert, vertx, verty, testx, testy ) {
+    var i, j, c = false;
+    for(i = 0, j = nvert-1; i < nvert; j = i++ ) {
+        if( ( ( verty[i] > testy ) != ( verty[j] > testy ) ) &&
+            ( testx < ( vertx[j] - vertx[i] ) * ( testy - verty[i] ) / ( verty[j] - verty[i] ) + vertx[i] ) ) {
+                c = !c;
+        }
+    }
+    return c;
+}
+
+function lineIntersect(x1,y1,x2,y2, x3,y3,x4,y4) {
+    var x=((x1*y2-y1*x2)*(x3-x4)-(x1-x2)*(x3*y4-y3*x4))/((x1-x2)*(y3-y4)-(y1-y2)*(x3-x4));
+    var y=((x1*y2-y1*x2)*(y3-y4)-(y1-y2)*(x3*y4-y3*x4))/((x1-x2)*(y3-y4)-(y1-y2)*(x3-x4));
+    if (isNaN(x)||isNaN(y)) {
+        return false;
+    } else {
+        if (x1>=x2) {
+            if (!(x2<=x&&x<=x1)) {return false;}
+        } else {
+            if (!(x1<=x&&x<=x2)) {return false;}
+        }
+        if (y1>=y2) {
+            if (!(y2<=y&&y<=y1)) {return false;}
+        } else {
+            if (!(y1<=y&&y<=y2)) {return false;}
+        }
+        if (x3>=x4) {
+            if (!(x4<=x&&x<=x3)) {return false;}
+        } else {
+            if (!(x3<=x&&x<=x4)) {return false;}
+        }
+        if (y3>=y4) {
+            if (!(y4<=y&&y<=y3)) {return false;}
+        } else {
+            if (!(y3<=y&&y<=y4)) {return false;}
+        }
+    }
+    return true;
+}
+
+function getLineIntersection(p0_x, p0_y, p1_x, p1_y, p2_x, p2_y, p3_x, p3_y) {
+	var s1_x, s1_y, s2_x, s2_y;
+	s1_x = p1_x - p0_x; s1_y = p1_y - p0_y; s2_x = p3_x - p2_x;
+	s2_y = p3_y - p2_y;
+	var s, t;
+	s = (-s1_y * (p0_x - p2_x) + s1_x * (p0_y - p2_y)) / (-s2_x * s1_y + s1_x * s2_y);
+	t = ( s2_x * (p0_y - p2_y) - s2_y * (p0_x - p2_x)) / (-s2_x * s1_y + s1_x * s2_y);
+
+	if (s >= 0 && s <= 1 && t >= 0 && t <= 1) {// Collision detected
+		var intX = p0_x + (t * s1_x);
+		var intY = p0_y + (t * s1_y);
+		return [intX, intY];
+	}
+	return null;// No collision
+}
+
+function checkLineCollision(a, b) {
+	if(!a){
+		return false;
+	}
+	//a is the object that holds the line
+	if(!a.laserTo){
+		return false;
+	}
+	var line1 = {
+		point: [
+			{
+				x: a.position[0],
+				y: a.position[1]
+			},
+			{
+				x: a.laserTo.position[0],
+				y: a.laserTo.position[1]
+			}
+		]
+	};
+	//line1.angle = calcAngle(line1.point[0].x, line1.point[1].x, line1.point[0].y, line1.point[1].y);
+	//line1.distance = lineDistance(line1.point[0], line1.point[1]);
+
+	//Create line that extends from current Asteroid out to the line
+
+	var line2 = {
+		point: [
+			{
+				x: b.position[0],
+				y: b.position[1]
+			},
+			{
+				x: b.position[0] + (b.direction[0] * 10),
+				y: b.position[1] + (b.direction[1] * 10)
+			}
+		]
+	};
+
+	var hit = getLineIntersection(
+		line1.point[0].x,
+		line1.point[0].y,
+		line1.point[1].x,
+		line1.point[1].y,
+
+		line2.point[0].x,
+		line2.point[0].y,
+		line2.point[1].x,
+		line2.point[1].y
+	);
+	if(hit){
+		a.hit();
+		b.hit();
+	}
+	return hit;
+	// if(!(
+ //        ((a.position[1] + a.object.element.height) < (b.position[1])) ||
+ //        (a.position[1] > (b.position[1] + b.object.element.height)) ||
+ //        ((a.position[0] + a.object.element.width) < b.position[0]) ||
+ //        (a.position[0] > (b.position[0] + b.object.element.width))
+	// )){
+	// 	a.hit();
+	// 	b.hit();
+	// 		//console.log('Hit between', a, b);//replace with player health decrement
+	// 	return true;
+ //    }
+    //return false;
 }
 
 /**
