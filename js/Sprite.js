@@ -16,6 +16,9 @@ define(["js/inheritance"], function() {
 				if(this.healthElement){
 					document.getElementById('playspace').removeChild(this.healthElement);
 				}
+				if(this.laser){
+					document.getElementById('playspace').removeChild(this.laser.element);
+				}
 			} catch (err) {
 				console.log('failed to remove Sprite: ', err);
 			}
