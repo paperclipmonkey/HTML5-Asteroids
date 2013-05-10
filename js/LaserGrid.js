@@ -33,7 +33,7 @@ define(["js/Automiton"], function(Automiton) {
 		},
 
 		hit: function () {
-			this.health -= 50;
+			this.health -= 1;
 			if(this.health <= 0){
 				this.die();
 				return;
@@ -69,7 +69,7 @@ define(["js/Automiton"], function(Automiton) {
 				start.x = 0;
 			}
 
-			if(this.position[0] >= this.laserTo.position[0]){
+			if(this.position[1] >= this.laserTo.position[1]){
 				start.y = height;
 			} else {
 				start.y = 0;
@@ -82,6 +82,16 @@ define(["js/Automiton"], function(Automiton) {
 
 			this.laser = new this.Object(this.position, width, height);
 
+			this.laser.offset = {
+				x: this.position[0] - this.laserTo.position[0],
+				y: this.position[1] - this.laserTo.position[1]
+			};
+
+			this.laser.offset.x = this.laser.offset.x < 0 ? 0 : this.laser.offset.x;
+			this.laser.offset.y = this.laser.offset.y < 0 ? 0 : this.laser.offset.y;
+
+			console.log(this.laser.offset);
+
 			cx = this.laser.canvas;
 
 			cx.beginPath();
@@ -89,6 +99,14 @@ define(["js/Automiton"], function(Automiton) {
 			cx.lineTo(end.x, end.y);
 			cx.strokeStyle = 'green';
 			cx.stroke();
+		},
+
+		backLink: function(el){
+			this.backLink = el;
+		},
+
+		link: function(el){
+			this.laserTo = el;
 		},
 
 		move: function () {//Moving LaserGrid forward
@@ -101,13 +119,13 @@ define(["js/Automiton"], function(Automiton) {
 			this.healthElement.style.top = this.position[1] - 8 - game.viewport.y;//Vertical
 
 			if(this.laser.element){
-				this.laser.element.style.left = this.position[0] - 5 - game.viewport.x;//Horizontal
-				this.laser.element.style.top = this.position[1] - 8 - game.viewport.y;//Vertical
+				this.laser.element.style.left = this.position[0] - this.laser.offset.x - 5 - game.viewport.x;//Horizontal
+				this.laser.element.style.top = this.position[1] - this.laser.offset.y - 8 - game.viewport.y;//Vertical
 			}
 		},
 
 		die: function () {//LaserGrid has been killed
-			game.satellites.splice(game.satellites.indexOf(this),1);
+			game.lasergrid.splice(game.lasergrid.indexOf(this),1);
 			return this.remove();
 		}
 	});

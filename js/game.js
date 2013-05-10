@@ -439,6 +439,23 @@ window.game = (function(){
 			i++;
 		}
 
+		//Check for collisions between Lasers and asteroids
+		var li=0;
+		ii=0;
+		while (li < lasergrid.length) {
+		//for (i=0; i < lasergrid.length; i++) {
+			while (ii < asteroids.length) {
+				if(checkLineCollision(lasergrid[li], asteroids[ii])){
+					li--;
+					break;
+				} else {
+					ii++;
+				}
+			}
+			ii = 0;
+			li++;
+		}
+
 		//Check for collisions between user and asteroids
 		i=0;
 		while (i < game.asteroids.length) {
