@@ -340,7 +340,7 @@ window.game = (function(){
 		cx.fill();
 
 
-		for (i=0; i < satellites.length; i++) {
+		for (var i=0; i < satellites.length; i++) {
 			cx.beginPath();
 			cx.arc((satellites[i].position[0] / game.width)*100, (satellites[i].position[1] / game.height)*100, 2/*Radius*/, 0, 2 * Math.PI, false);
 			cx.fillStyle = 'black';
@@ -435,6 +435,7 @@ window.game = (function(){
 					ii++;
 				}
 			}
+			ii = 0;
 			i++;
 		}
 
