@@ -32,6 +32,8 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
+window.AudioContext	= window.AudioContext || window.webkitAudioContext;
+
 /**
  * Main class to handle webkit audio
  * 
@@ -43,18 +45,21 @@
 */
 WebAudio	= function(){
 	// sanity check - the api MUST be available
-	console.assert(WebAudio.isAvailable === true, 'webkitAudioContext isnt available on your browser');
-
+	if( WebAudio.isAvailable === false ){
+		this._addRequiredMessage();
+		// Throw an error to stop execution
+		throw new Error('WebAudio API is required and not available.')	
+	}
+	
 	// create the context
-	this._ctx	= new webkitAudioContext();
-
+	this._ctx	= new AudioContext();
 	// setup internal variable
 	this._muted	= false;
 	this._volume	= 1;
 
 	// setup the end of the node chain
 	// TODO later code the clipping detection from http://www.html5rocks.com/en/tutorials/webaudio/games/ 
-	this._gainNode	= this._ctx.createGainNode();
+	this._gainNode	= this._ctx.createGain();
 	this._compressor= this._ctx.createDynamicsCompressor();
 	this._gainNode.connect( this._compressor );
 	this._compressor.connect( this._ctx.destination );	
@@ -79,11 +84,34 @@ WebAudio.prototype.destroy	= function(){
 };
 
 /**
- * 
- *
  * @return {Boolean} true if it is available or not
 */
-WebAudio.isAvailable	= window.webkitAudioContext ? true : false;
+WebAudio.isAvailable	= window.AudioContext ? true : false;
+
+//////////////////////////////////////////////////////////////////////////////////
+//		comment								//
+//////////////////////////////////////////////////////////////////////////////////
+
+WebAudio.prototype._addRequiredMessage = function(parent) {
+	// handle defaults arguements
+	parent	= parent || document.body;
+	// message directly taken from Detector.js
+	var domElement = document.createElement( 'div' );
+	domElement.style.fontFamily	= 'monospace';
+	domElement.style.fontSize	= '13px';
+	domElement.style.textAlign	= 'center';
+	domElement.style.background	= '#eee';
+	domElement.style.color		= '#000';
+	domElement.style.padding	= '1em';
+	domElement.style.width		= '475px';
+	domElement.style.margin		= '5em auto 0';
+	domElement.innerHTML		= [
+		'Your browser does not seem to support <a href="https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html">WebAudio API</a>.<br />',
+		'Try with <a href="https://www.google.com/intl/en/chrome/browser/">Chrome Browser</a>.'
+	].join( '\n' );
+	// add it to the parent
+	parent.appendChild(domElement);
+}
 
 //////////////////////////////////////////////////////////////////////////////////
 //										//
@@ -187,14 +215,15 @@ WebAudio.prototype._pageVisibilityCtor	= function(){
 WebAudio.prototype._pageVisibilityDtor	= function(){
 	// unbind the event itself
 	document.removeEventListener(this._pageVisibilityEventStr, this._$pageVisibilityCallback, false);
-}/**
+}
+/**
  * Constructor
  *
  * @class builder to generate nodes chains. Used in WebAudio.Sound
- * @param {webkitAudioContext} audioContext the audio context
+ * @param {AudioContext} audioContext the audio context
 */
 WebAudio.NodeChainBuilder	= function(audioContext){
-	console.assert( audioContext instanceof webkitAudioContext );
+	console.assert(audioContext instanceof AudioContext);
 	this._context	= audioContext;
 	this._firstNode	= null;
 	this._lastNode	= null;
@@ -202,10 +231,24 @@ WebAudio.NodeChainBuilder	= function(audioContext){
 };
 
 /**
+ * creator
+ * 
+ * @param  {webkitAudioContext} 	audioContext the context	
+ * @return {WebAudio.NodeChainBuider}	just created object
+ */
+WebAudio.NodeChainBuilder.create= function(audioContext){
+	return new WebAudio.NodeChainBuilder(audioContext);
+}
+
+/**
  * destructor
 */
 WebAudio.NodeChainBuilder.prototype.destroy	= function(){
 };
+
+//////////////////////////////////////////////////////////////////////////////////
+//		getters								//
+//////////////////////////////////////////////////////////////////////////////////
 
 /**
  * getter for the nodes
@@ -228,6 +271,15 @@ WebAudio.NodeChainBuilder.prototype.last	= function(){
 	return this._lastNode;
 }
 
+//////////////////////////////////////////////////////////////////////////////////
+//										//
+//////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * add a node to the chain
+ * @param {[type]} node       [description]
+ * @param {[type]} properties [description]
+ */
 WebAudio.NodeChainBuilder.prototype._addNode	= function(node, properties)
 {
 	// update this._bufferSourceDst - needed for .cloneBufferSource()
@@ -251,6 +303,10 @@ WebAudio.NodeChainBuilder.prototype._addNode	= function(node, properties)
 };
 
 
+//////////////////////////////////////////////////////////////////////////////////
+//		creator for each type of nodes					//
+//////////////////////////////////////////////////////////////////////////////////
+
 /**
  * Clone the bufferSource. Used just before playing a sound
  * @returns {AudioBufferSourceNode} the clone AudioBufferSourceNode
@@ -273,6 +329,30 @@ WebAudio.NodeChainBuilder.prototype.cloneBufferSource	= function(){
 */
 WebAudio.NodeChainBuilder.prototype.bufferSource	= function(properties){
 	var node		= this._context.createBufferSource()
+	this._nodes.bufferSource= node;
+	return this._addNode(node, properties)
+};
+
+/**
+ * add a createMediaStreamSource
+ *
+ * @param {Object} [properties] properties to set in the created node
+*/
+WebAudio.NodeChainBuilder.prototype.mediaStreamSource	= function(stream, properties){
+//	console.assert( stream instanceof LocalMediaStream )
+	var node		= this._context.createMediaStreamSource(stream)
+	this._nodes.bufferSource= node;
+	return this._addNode(node, properties)
+};
+
+/**
+ * add a createMediaElementSource
+ * @param  {HTMLElement} element    the element to add
+ * @param {Object} [properties] properties to set in the created node
+ */
+WebAudio.NodeChainBuilder.prototype.mediaElementSource = function(element, properties){
+	console.assert(element instanceof HTMLAudioElement || element instanceof HTMLVideoElement)
+	var node		= this._context.createMediaElementSource(element)
 	this._nodes.bufferSource= node;
 	return this._addNode(node, properties)
 };
@@ -305,7 +385,7 @@ WebAudio.NodeChainBuilder.prototype.analyser	= function(properties){
  * @param {Object} [properties] properties to set in the created node
 */
 WebAudio.NodeChainBuilder.prototype.gainNode	= function(properties){
-	var node		= this._context.createGainNode()
+	var node		= this._context.createGain()
 	this._nodes.gainNode	= node;
 	return this._addNode(node, properties)
 };
@@ -332,7 +412,6 @@ WebAudio.Sound	= function(webaudio, nodeChain){
 	// setup this._chain
 	console.assert( nodeChain instanceof WebAudio.NodeChainBuilder );
 	this._chain	= nodeChain;
-
 	// connect this._chain.last() node to this._webaudio._entryNode()
 	this._chain.last().connect( this._webaudio._entryNode() );
 	
@@ -348,6 +427,10 @@ WebAudio.Sound	= function(webaudio, nodeChain){
 	console.assert(this._analyser	, "no analyser: not yet supported")
 	console.assert(this._panner	, "no panner: not yet supported")
 };
+
+WebAudio.Sound.create	= function(webaudio, nodeChain){
+	return new WebAudio.Sound(webaudio,  nodeChain);
+}
 
 /**
  * destructor
@@ -390,17 +473,21 @@ WebAudio.Sound.prototype.isPlayable	= function(){
  * @param {Number} [time] time when to play the sound
 */
 WebAudio.Sound.prototype.play		= function(time){
+	// handle parameter polymorphism
 	if( time ===  undefined )	time	= 0;
+	// if not yet playable, ignore
+	// - usefull when the sound download isnt yet completed
+	if( this.isPlayable() === false )	return;
 	// clone the bufferSource
 	var clonedNode	= this._chain.cloneBufferSource();
 	// set the noteOn
-	clonedNode.noteOn(time);
+	clonedNode.start(time);
 	// create the source object
 	var source	= {
 		node	: clonedNode,
 		stop	: function(time){
 			if( time ===  undefined )	time	= 0;
-			this.node.noteOff(time);
+			this.node.stop(time);
 			return source;	// for chained API
 		}
 	}
@@ -530,7 +617,7 @@ WebAudio.Sound.prototype.tone	= function(hertz, seconds){
 	var sampleRate	= 44100;
 	var amplitude	= 2;
 	// create the buffer
-	var buffer	= webaudio.context().createBuffer(nChannels, seconds*sampleRate, sampleRate);
+	var buffer	= this._webaudio.context().createBuffer(nChannels, seconds*sampleRate, sampleRate);
 	var fArray	= buffer.getChannelData(0);
 	// fill the buffer
 	for(var i = 0; i < fArray.length; i++){
@@ -558,9 +645,9 @@ WebAudio.Sound.prototype.makeHistogram	= function(nBar)
 	var freqData	= this._privHisto;
 
 	// get the data
-	//analyser.getFloatFrequencyData(freqData)
+	//analyser.getFloatFrequencyData(freqData);
 	analyser.getByteFrequencyData(freqData);
-	//analyser.getByteTimeDomainData(freqData)
+	//analyser.getByteTimeDomainData(freqData);
 
 	/**
 	 * This should be in imageprocessing.js almost
@@ -593,15 +680,21 @@ WebAudio.Sound.prototype.makeHistogram	= function(nBar)
  * Load a sound
  *
  * @param {String} url the url of the sound to load
- * @param {Function} callback function to notify once the url is loaded (optional)
+ * @param {Function} onSuccess function to notify once the url is loaded (optional)
+ * @param {Function} onError function to notify if an error occurs (optional)
 */
-WebAudio.Sound.prototype.load = function(url, callback){
+WebAudio.Sound.prototype.load = function(url, onSuccess, onError){
+	// handle default arguments
+	onError	= onError	|| function(){
+		console.warn("unable to load sound "+url);
+	}
+	// try to load the user	
 	this._loadAndDecodeSound(url, function(buffer){
 		this._source.buffer	= buffer;
-		callback && callback(this);
+		onSuccess && onSuccess(this);
 	}.bind(this), function(){
-		console.warn("unable to load sound "+url);
-	});
+		onError && onError(this);
+	}.bind(this));
 	return this;	// for chained API
 };
 
