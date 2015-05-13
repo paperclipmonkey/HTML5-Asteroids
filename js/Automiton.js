@@ -135,7 +135,7 @@ define(["js/Sprite","js/Bullet"], function(Sprite, Bullet) {
 				to.y
 			);
 
-			if(!distance && this.velocity === 0){
+			if(distance < 2 && this.velocity < 0.1){
 				this._to = null;
 				return true;
 			}
