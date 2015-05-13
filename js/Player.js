@@ -247,8 +247,6 @@ define(["js/Automiton", "js/Satellite", "js/LaserGrid"], function(Automiton, Sat
 
 			this.position[0]  += parseInt(((this.velocity * (directions[0])))*game.delta, 10)/10;
 			this.position[1] -= parseInt(((this.velocity * (directions[1])))*game.delta, 10)/10;
-			//this.position[0] = parseInt(this.position[0], 10);
-			//this.position[1] = parseInt(this.position[1], 10);
 
 			// - - - - - - - - - - - - - Move Viewport - - - - - - - - - - - - -
 			var mvprt = {
@@ -272,8 +270,8 @@ define(["js/Automiton", "js/Satellite", "js/LaserGrid"], function(Automiton, Sat
 				game.moveViewport(mvprt);
 			}
 
-			this.object.element.style.left = this.position[0] - game.viewport.x;// + game.viewport.x;//Horizontal
-			this.object.element.style.top = this.position[1] - game.viewport.y;// + game.viewport.y;//Vertical
+			this.object.element.style.left = this.position[0] - game.viewport.x;//Horizontal
+			this.object.element.style.top = this.position[1] - game.viewport.y;//Vertical
 
 			this.inertia();
 		},
