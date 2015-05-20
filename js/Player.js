@@ -201,10 +201,10 @@ define(["js/Automiton", "js/Satellite", "js/LaserGrid"], function(Automiton, Sat
 			img1.src = 'img/ship-base-shield.png';
 		},
 
-		goForwards: function (small) {
+		goForwards: function (size) {
 			if (this.velocity < 3600) {
-				if(small === 'small'){
-					this.velocity += 100;
+				if(typeof size === "number"){
+					this.velocity += size * 2;
 				} else {
 					this.velocity += 200;
 				}
@@ -223,7 +223,7 @@ define(["js/Automiton", "js/Satellite", "js/LaserGrid"], function(Automiton, Sat
 
 		move: function (game) {//Moving player forward
 			if(this.thrusters){
-				this.goForwards();
+				this.goForwards(this.thrusters);
 			}
 
 			if(this._to){

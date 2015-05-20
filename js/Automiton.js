@@ -135,8 +135,11 @@ define(["js/Sprite","js/Bullet"], function(Sprite, Bullet) {
 				to.y
 			);
 
-			if(distance < 2 && this.velocity < 0.1){
+			console.log(distance, this.velocity);
+			if(distance < 20 && this.velocity < 200){
+				console.log('Found position');
 				this._to = null;
+				this.forwards(0);
 				return true;
 			}
 
@@ -193,14 +196,19 @@ define(["js/Sprite","js/Bullet"], function(Sprite, Bullet) {
 				this.goTurn('clockwise', game);
 			} else if(leftright < -5){
 				this.goTurn('anticlockwise', game);
+			} 
+
+			if(distance > 700){
+				this.forwards(100);
+				//this.goForwards();
+			} else if(distance <= 700 && distance > 300){
+				this.forwards(70);
+				//this.goForwards();
+			} else if(distance <= 300 && distance > 100){
+				this.forwards(40);
+				//this.goForwards('small');
 			} else {
-				if(distance > 700){
-					this.goForwards();
-				} else if(distance < 500 && distance > 100 && this.velocity < 1000){
-					this.goForwards();
-				} else if(this.velocity < 200){
-					this.goForwards('small');
-				}
+				this.forwards(15);//
 			}
 
 			return false;
