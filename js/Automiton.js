@@ -175,21 +175,15 @@ define(["js/Sprite","js/Bullet"], function(Sprite, Bullet) {
 						closest.obj.direction[1]
 				);
 
-				console.log(obAng);
-
-				// if(obAng + 20 > closest.direction && obAng - 20 < closest.direction){
-				// 	direction = direction - 40;
-				// } else
 				if(closest.direction + 20 > direction && closest.direction - 20 < direction){
 					var lr = closest.direction - direction;
 					//change angle to avoid hit
 					if(lr < 0){
-						direction = direction + 40;//(40 * closest.distance / 250);
+						direction = direction + 40;
 					} else {
-						direction = direction - 40;//(40 * closest.distance / 250);
+						direction = direction - 40;
 					}
 				}
-				//if(closest.obj.)
 			}
 
 			var leftright = direction - this.orientation;
@@ -200,9 +194,6 @@ define(["js/Sprite","js/Bullet"], function(Sprite, Bullet) {
 			} else if(leftright < -5){
 				this.goTurn('anticlockwise', game);
 			} else {
-				//var cspeed = distance / this.velocity;
-				//console.log(cspeed);
-				//console.log(distance, this.velocity);
 				if(distance > 700){
 					this.goForwards();
 				} else if(distance < 500 && distance > 100 && this.velocity < 1000){
@@ -211,7 +202,6 @@ define(["js/Sprite","js/Bullet"], function(Sprite, Bullet) {
 					this.goForwards('small');
 				}
 			}
-			//Forwards
 
 			return false;
 		},

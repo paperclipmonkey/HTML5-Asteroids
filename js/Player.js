@@ -1,3 +1,6 @@
+/*
+Player inherit from Automiton but adds additional functionality like collecting powerups, shields and deploying satellites
+*/
 define(["js/Automiton", "js/Satellite", "js/LaserGrid"], function(Automiton, Satellite, LaserGrid) {
 	var Player = Automiton.extend({
 		init: function(obj){
