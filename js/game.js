@@ -313,8 +313,8 @@ window.game = (function(){
 			height: window.innerHeight,
 			width: window.innerWidth
 		},
-		player,
-		webaudio = new WebAudio();//Used to play audio when firing etc
+		player
+		// webaudio = new WebAudio();//Used to play audio when firing etc
 
 	function resize() {
 		game.viewport.height = window.innerHeight / game.zoom;
@@ -693,7 +693,7 @@ window.game = (function(){
 		calcAngle: calcAngle,
 		load: load,
 		scale: scale,
-		webaudio: webaudio,
+		// webaudio: webaudio,
 		settings: settings,
 		zoom: zoom,
 		resize: resize,
